@@ -110,13 +110,15 @@ const Board = ({ telegramUser }: BoardProps) => {
     }
   };
 
+
+  const playerName = telegramUser?.first_name || 'Игрок'; 
   let status;
   if (winner) {
-    status = `Победитель: ${winner}`;
+    const winnerName = winner === 'X' ? playerName : 'Компьютер';
+    status = `Победил ${winnerName}`;
   } else if (isDraw) {
     status = 'Ничья!';
   } else {
-    const playerName = telegramUser?.first_name || 'Игрок'; 
     status = `Следующий ход: ${currentTurn === 'X' ? playerName : 'Компьютер'}`;
   }
 
