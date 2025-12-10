@@ -25,11 +25,13 @@ interface BoardProps {
 const Cell = ({ value, onClick }: { value: Player | null; onClick: () => void }) => {
   return (
     <div
-      className="border-2 border-gray-400 rounded-lg cursor-pointer aspect-square p-4 overflow-hidden"
+      className="border-2 border-gray-400 rounded-lg cursor-pointer aspect-square relative"
       onClick={onClick}
     >
-      {value === 'X' && <X_icon />}
-      {value === 'O' && <O_icon />}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        {value === 'X' && <X_icon />}
+        {value === 'O' && <O_icon />}
+      </div>
     </div>
   );
 };
