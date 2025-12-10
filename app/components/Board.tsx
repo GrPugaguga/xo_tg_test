@@ -25,7 +25,7 @@ interface BoardProps {
 const Cell = ({ value, onClick }: { value: Player | null; onClick: () => void }) => {
   return (
     <div
-      className="border-2 border-gray-400 rounded-lg flex items-center justify-center cursor-pointer aspect-square p-4"
+      className="border-2 border-gray-400 rounded-lg cursor-pointer aspect-square p-4"
       onClick={onClick}
     >
       {value === 'X' && <X_icon />}
@@ -67,7 +67,7 @@ const Board = ({ telegramUser }: BoardProps) => {
 
   useEffect(() => {
     const currentWinner = calculateWinner(board);
-    if (currentWinner) {
+    if (currentWinner && !winner) {
       setWinner(currentWinner);
       if (currentWinner === 'X') {
         setIsPopupOpen(true); 
