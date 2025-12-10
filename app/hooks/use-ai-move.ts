@@ -28,7 +28,7 @@ export const useAiMove = (board: BoardState, makeMove: MakeMoveFunction) => {
   const aiMove = useCallback(() => {
     const availableMoves = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null) as number[];
 
-    if (Math.random() < 0.4) {
+    if (Math.random() < 0.35) {
       if (availableMoves.length > 0) {
         const randomIndex = Math.floor(Math.random() * availableMoves.length);
         makeMove(availableMoves[randomIndex], 'O');
