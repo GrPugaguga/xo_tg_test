@@ -11,43 +11,57 @@ interface TelegramUser {
   is_premium?: boolean;
 }
 
-interface TelegramUserContextType {
+interface TelegramContextType {
   telegramUser: TelegramUser | null;
+  initData: string | null;
 }
 
-const TelegramUserContext = createContext<TelegramUserContextType | undefined>(undefined);
+const TelegramContext = createContext<TelegramContextType | undefined>(undefined);
 
-interface TelegramUserProviderProps {
-  children: ReactNode;
-}
-
-export const TelegramUserProvider = ({ children }: TelegramUserProviderProps) => {
+export const TelegramProvider = ({ children }: { children: ReactNode }) => {
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [initData, setInitData] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    let initDataString: string | null = null;
+
+    if (typeof window !== 'undefined') {
+      if (window.Telegram?.WebApp?.initData) {
+        initDataString = window.Telegram.WebApp.initData;
+      } 
+      else {
+        const hash = window.location.hash.slice(1);
+        const params = new URLSearchParams(hash);
+        initDataString = params.get('tgWebAppData');
+      }
+    }
+
+    if (initDataString) {
+      setInitData(initDataString);
       try {
-        const user = window.Telegram.WebApp.initDataUnsafe.user;
-        if (user) {
-          setTelegramUser(user as TelegramUser);
+        const params = new URLSearchParams(initDataString);
+        const userParam = params.get('user');
+        if (userParam) {
+          const user = JSON.parse(decodeURIComponent(userParam));
+          setTelegramUser(user);
         }
       } catch (error) {
-        console.error("Error accessing Telegram WebApp user data:", error);
+        console.error("Failed to parse user data from initData:", error);
       }
     }
   }, []);
 
   return (
-    <TelegramUserContext.Provider value={{ telegramUser }}>
+    <TelegramContext.Provider value={{ telegramUser, initData }}>
       {children}
-    </TelegramUserContext.Provider>
+    </TelegramContext.Provider>
   );
 };
 
-export const useTelegramUser = () => {
-  const context = useContext(TelegramUserContext);
+export const useTelegram = () => {
+  const context = useContext(TelegramContext);
   if (context === undefined) {
-    throw new Error('useTelegramUser must be used within a TelegramUserProvider');
+    throw new Error('useTelegram must be used within a TelegramProvider');
   }
   return context;
 };
