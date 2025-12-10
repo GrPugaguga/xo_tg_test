@@ -9,6 +9,19 @@ import { useAiMove, calculateWinner } from '../hooks/use-ai-move';
 type Player = 'X' | 'O';
 type BoardState = (Player | null)[];
 
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  language_code?: string;
+  is_premium?: boolean;
+}
+
+interface BoardProps {
+  telegramUser: TelegramUser | null;
+}
+
 const Cell = ({ value, onClick }: { value: Player | null; onClick: () => void }) => {
   return (
     <div
@@ -21,7 +34,7 @@ const Cell = ({ value, onClick }: { value: Player | null; onClick: () => void })
   );
 };
 
-const Board = () => {
+const Board = ({ telegramUser }: BoardProps) => { 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [currentTurn, setCurrentTurn] = useState<Player>('X');
   const [winner, setWinner] = useState<Player | null>(null);
@@ -58,6 +71,26 @@ const Board = () => {
       setWinner(currentWinner);
       if (currentWinner === 'X') {
         setIsPopupOpen(true); 
+        if (telegramUser) { 
+          fetch('/api/promo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: telegramUser.id,
+              message: `Поздравляем ${telegramUser.first_name || ''}! Вы выиграли промокод!`, 
+              initData: window.Telegram?.WebApp.initData 
+            }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Promocode API response:', data);
+          })
+          .catch(error => {
+            console.error('Error sending promocode:', error);
+          });
+        }
       }
     } else if (board.every(cell => cell !== null)) {
       setIsDraw(true);
@@ -67,7 +100,7 @@ const Board = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [board, currentTurn, winner, isDraw, aiMove]);
+  }, [board, currentTurn, winner, isDraw, aiMove, telegramUser]); 
 
   const handleClick = (i: number) => {
     if (currentTurn === 'X' && !winner && !isDraw && board[i] === null) {
@@ -81,7 +114,8 @@ const Board = () => {
   } else if (isDraw) {
     status = 'Ничья!';
   } else {
-    status = `Следующий ход: ${currentTurn === 'X' ? 'Игрок' : 'Компьютер'}`;
+    const playerName = telegramUser?.first_name || 'Игрок'; 
+    status = `Следующий ход: ${currentTurn === 'X' ? playerName : 'Компьютер'}`;
   }
 
   return (
